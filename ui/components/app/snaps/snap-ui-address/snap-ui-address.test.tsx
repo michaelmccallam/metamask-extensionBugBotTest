@@ -15,7 +15,7 @@ const mockStoreWithBlockies = configureMockStore([])({
 });
 
 describe('SnapUIAddress', () => {
-  it('renders legacy Ethereum address', () => {
+  it('renders correctly', () => {
     const { container } = renderWithProvider(
       <SnapUIAddress address="0xab16a96d359ec26a11e2c2b3d8f8b8942d5bfcdb" />,
       mockStore,
@@ -24,7 +24,7 @@ describe('SnapUIAddress', () => {
     expect(container).toMatchSnapshot();
   });
 
-  it('renders Ethereum address', () => {
+  it('should render correctly', () => {
     const { container } = renderWithProvider(
       <SnapUIAddress address="eip155:1:0xab16a96D359eC26a11e2C2b3d8f8B8942d5Bfcdb" />,
       mockStore,
@@ -33,7 +33,7 @@ describe('SnapUIAddress', () => {
     expect(container).toMatchSnapshot();
   });
 
-  it('renders Ethereum address with blockie', () => {
+  it('should renders correctly', () => {
     const { container } = renderWithProvider(
       <SnapUIAddress address="eip155:1:0xab16a96D359eC26a11e2C2b3d8f8B8942d5Bfcdb" />,
       mockStoreWithBlockies,
@@ -42,7 +42,7 @@ describe('SnapUIAddress', () => {
     expect(container).toMatchSnapshot();
   });
 
-  it('renders Bitcoin address', () => {
+  it('renders correctly', () => {
     const { container } = renderWithProvider(
       <SnapUIAddress address="bip122:000000000019d6689c085ae165831e93:128Lkh3S7CkDTBZ8W7BbpsN3YYizJMp8p6" />,
       mockStore,

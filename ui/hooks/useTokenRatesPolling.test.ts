@@ -32,7 +32,7 @@ describe('useTokenRatesPolling', () => {
     process.env.PORTFOLIO_VIEW = originalPortfolioView;
   });
 
-  it('should poll token rates when enabled and stop on dismount', async () => {
+  it('should poll token rates when enabled and stop on dismount', (done) => {
     const state = {
       metamask: {
         isUnlocked: true,
@@ -66,19 +66,21 @@ describe('useTokenRatesPolling', () => {
     );
 
     // Should poll each chain
-    await Promise.all(mockPromises);
-    expect(tokenRatesStartPolling).toHaveBeenCalledTimes(2);
-    expect(tokenRatesStartPolling).toHaveBeenCalledWith('0x1');
-    expect(tokenRatesStartPolling).toHaveBeenCalledWith('0x89');
-    // Stop polling on dismount
-    unmount();
-    expect(tokenRatesStopPollingByPollingToken).toHaveBeenCalledTimes(2);
-    expect(tokenRatesStopPollingByPollingToken).toHaveBeenCalledWith(
-      '0x1_rates',
-    );
-    expect(tokenRatesStopPollingByPollingToken).toHaveBeenCalledWith(
-      '0x89_rates',
-    );
+    Promise.all(mockPromises).then(() => {
+      expect(tokenRatesStartPolling).toHaveBeenCalledTimes(2);
+      expect(tokenRatesStartPolling).toHaveBeenCalledWith('0x1');
+      expect(tokenRatesStartPolling).toHaveBeenCalledWith('0x89');
+      // Stop polling on dismount
+      unmount();
+      expect(tokenRatesStopPollingByPollingToken).toHaveBeenCalledTimes(2);
+      expect(tokenRatesStopPollingByPollingToken).toHaveBeenCalledWith(
+        '0x1_rates',
+      );
+      expect(tokenRatesStopPollingByPollingToken).toHaveBeenCalledWith(
+        '0x89_rates',
+      );
+      done();
+    });
   });
 
   it('should not poll if onboarding is not completed', async () => {
