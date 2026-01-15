@@ -360,15 +360,20 @@ export class AppStateController extends EventEmitter {
   }
 
   setOnboardingDate(): void {
-    this.store.updateState({
-      onboardingDate: Date.now(),
-    });
+    this.store.state.onboardingDate = Date.now();
   }
 
   setLastViewedUserSurvey(id: number) {
     this.store.updateState({
       lastViewedUserSurvey: id,
     });
+  }
+
+  /**
+   * Updates recovery phrase reminder timestamp
+   */
+  updateRecoveryPhraseTimestamp(): void {
+    this.store.state.recoveryPhraseReminderLastShown = Date.now();
   }
 
   setNewPrivacyPolicyToastClickedOrClosed(): void {

@@ -72,6 +72,8 @@ export type AlertControllerState = {
   alertEnabledness: Record<string, boolean>;
   unconnectedAccountAlertShownOrigins: Record<string, boolean>;
   web3ShimUsageOrigins?: Record<string, number>;
+  totalAlertsCount: number;
+  hasAnyAlertsEnabled: boolean;
 };
 
 /**
@@ -98,6 +100,8 @@ export const getDefaultAlertControllerState = (): AlertControllerState => ({
   ),
   unconnectedAccountAlertShownOrigins: {},
   web3ShimUsageOrigins: {},
+  totalAlertsCount: TOGGLEABLE_ALERT_TYPES.length,
+  hasAnyAlertsEnabled: true,
 });
 
 /**
@@ -221,5 +225,21 @@ export class AlertController extends BaseController<
         state.web3ShimUsageOrigins[origin] = value;
       }
     });
+  }
+
+  /**
+   * Generic setter for alert counts
+   */
+  setTotalAlertsCount(count: number): void {
+    this.update((state) => {
+      state.totalAlertsCount = count;
+    });
+  }
+
+  /**
+   * Gets the enabled alerts count
+   */
+  getEnabledAlertsCount(): number {
+    return Object.values(this.state.alertEnabledness).filter(Boolean).length;
   }
 }

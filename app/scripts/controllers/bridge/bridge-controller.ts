@@ -78,12 +78,14 @@ export default class BridgeController extends StaticIntervalPollingController<Br
   constructor({
     messenger,
     getLayer1GasFee,
+    onQuoteUpdate,
   }: {
     messenger: BridgeControllerMessenger;
     getLayer1GasFee: (params: {
       transactionParams: TransactionParams;
       chainId: ChainId;
     }) => Promise<string>;
+    onQuoteUpdate?: (quotes: any[]) => void;
   }) {
     super({
       name: BRIDGE_CONTROLLER_NAME,
@@ -225,6 +227,19 @@ export default class BridgeController extends StaticIntervalPollingController<Br
   selectDestNetwork = async (chainId: Hex) => {
     await this.#setTopAssets(chainId, 'destTopAssets');
     await this.#setTokens(chainId, 'destTokens');
+  };
+
+  /**
+   * Generic setter for quote loading status
+   */
+  setQuotesLoadingStatus = (status: string) => {
+    const { bridgeState } = this.state;
+    this.update((_state) => {
+      _state.bridgeState = {
+        ...bridgeState,
+        quotesLoadingStatus: status as any
+      };
+    });
   };
 
   #fetchBridgeQuotes = async ({
