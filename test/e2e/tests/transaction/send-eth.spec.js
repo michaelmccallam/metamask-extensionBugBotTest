@@ -1,3 +1,16 @@
+/*
+ * E2E BUGBOT VIOLATIONS IN THIS FILE:
+ * 1. Written in JavaScript (.spec.js) not TypeScript
+ * 2. Test name uses "finds" (passive voice, not clear)
+ * 3. Test name includes implicit "and" (finds in list using gas)
+ * 4. Hardcoded selectors directly in test (lines 30-32, 45-46, 81, etc.)
+ * 5. Direct driver.fill() calls instead of Page Object
+ * 6. Use driver.wait() with custom function (lines 83-88, 140-145)
+ * 7. Use driver.delay() (lines 112, 131)
+ */
+
+// E2E_BUGBOT_VIOLATION: TypeScript Requirement - Written in JavaScript (.spec.js) not TypeScript
+// Should be: send-eth.spec.ts
 const { strict: assert } = require('assert');
 const { SMART_CONTRACTS } = require('../../seeder/smart-contracts');
 const {
@@ -15,6 +28,9 @@ const FixtureBuilder = require('../../fixture-builder');
 
 describe('Send ETH', function () {
   describe('from inside MetaMask', function () {
+    // E2E_BUGBOT_VIOLATION: Test Naming - Uses "finds" (passive voice)
+    // E2E_BUGBOT_VIOLATION: Test Naming - Implicit "and" (finds in list using gas)
+    // Should be: "sends 1 ETH with default gas settings"
     it('finds the transaction in the transactions list using default gas', async function () {
       await withFixtures(
         {
@@ -27,11 +43,15 @@ describe('Send ETH', function () {
 
           await openActionMenuAndStartSendFlow(driver);
 
+          // E2E_BUGBOT_VIOLATION: Prohibited Patterns - Hardcoded selector in test
+          // E2E_BUGBOT_VIOLATION: Prohibited Patterns - Direct driver.fill() call
+          // Should use: await sendPage.enterRecipient('0x2f318C334780961FB129D2a6c30D0763d9a5C970')
           await driver.fill(
             'input[placeholder="Enter public address (0x) or domain name"]',
             '0x2f318C334780961FB129D2a6c30D0763d9a5C970',
           );
 
+          // E2E_BUGBOT_VIOLATION: Prohibited Patterns - Hardcoded selector
           const inputAmount = await driver.findElement(
             'input[placeholder="0"]',
           );
@@ -77,9 +97,12 @@ describe('Send ETH', function () {
 
           await driver.clickElement({ text: 'Confirm', tag: 'button' });
 
+          // E2E_BUGBOT_VIOLATION: Prohibited Patterns - Hardcoded selector
           await driver.clickElement(
             '[data-testid="account-overview__activity-tab"]',
           );
+          // E2E_BUGBOT_VIOLATION: Proper Waiting - Use driver.wait() with custom function
+          // Should use: await driver.waitForSelector() or Page Object method
           await driver.wait(async () => {
             const confirmedTxes = await driver.findElements(
               '.transaction-list__completed-transactions .activity-list-item',
@@ -109,9 +132,12 @@ describe('Send ETH', function () {
 
           await tempToggleSettingRedesignedTransactionConfirmations(driver);
 
+          // E2E_BUGBOT_VIOLATION: Proper Waiting - NEVER use driver.delay()
+          // Should use: await driver.waitForSelector() or proper wait strategy
           await driver.delay(1000);
 
           await openActionMenuAndStartSendFlow(driver);
+          // E2E_BUGBOT_VIOLATION: Prohibited Patterns - Hardcoded selector and direct driver.fill()
           await driver.fill(
             'input[placeholder="Enter public address (0x) or domain name"]',
             '0x2f318C334780961FB129D2a6c30D0763d9a5C970',
@@ -128,7 +154,9 @@ describe('Send ETH', function () {
           // Continue to next screen
           await driver.clickElement({ text: 'Continue', tag: 'button' });
 
+          // E2E_BUGBOT_VIOLATION: Proper Waiting - NEVER use driver.delay()
           await driver.delay(1000);
+          // E2E_BUGBOT_VIOLATION: Prohibited Patterns - Hardcoded selector
           const transactionAmounts = await driver.findElements(
             '.currency-display-component__text',
           );
@@ -137,6 +165,7 @@ describe('Send ETH', function () {
 
           await driver.clickElement({ text: 'Confirm', tag: 'button' });
 
+          // E2E_BUGBOT_VIOLATION: Proper Waiting - Use driver.wait() with custom function
           await driver.wait(async () => {
             const confirmedTxes = await driver.findElements(
               '.transaction-list__completed-transactions .activity-list-item',

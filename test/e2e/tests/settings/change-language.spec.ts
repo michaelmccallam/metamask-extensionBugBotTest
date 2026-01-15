@@ -1,3 +1,13 @@
+/*
+ * E2E BUGBOT VIOLATIONS IN THIS FILE:
+ * 1. Hardcoded selectors in test file (lines 15-33)
+ * 2. Direct driver calls in test (lines 36-44, 73-78, 102-107, etc.)
+ * 3. Direct element state checks (lines 63-66, 80-83)
+ * 4. Helper function with hardcoded selectors instead of Page Object
+ * 5. NO Page Object Model usage
+ * 6. Test name uses "validate" (vague wording)
+ */
+
 import { strict as assert } from 'assert';
 import { Suite } from 'mocha';
 
@@ -9,6 +19,9 @@ import {
 } from '../../helpers';
 import FixtureBuilder from '../../fixture-builder';
 
+// E2E_BUGBOT_VIOLATION: Page Object Model - Hardcoded selectors in test file
+// E2E_BUGBOT_VIOLATION: Page Object Model - NO Page Object Model usage
+// Should be defined in a SettingsPage class
 const selectors = {
   accountOptionsMenuButton: '[data-testid="account-options-menu-button"]',
   settingsOption: { text: 'Settings', tag: 'div' },
@@ -29,6 +42,9 @@ const selectors = {
   headerText: { text: 'الإعدادات', tag: 'h3' },
 };
 
+// E2E_BUGBOT_VIOLATION: Prohibited Patterns - Direct driver calls in helper function
+// E2E_BUGBOT_VIOLATION: Page Object Model - Helper function with hardcoded selectors instead of Page Object
+// Should be a method in SettingsPage class
 async function changeLanguage(driver: Driver, languageIndex: number) {
   await driver.clickElement(selectors.accountOptionsMenuButton);
   await driver.clickElement(selectors.settingsOption);
@@ -41,6 +57,8 @@ async function changeLanguage(driver: Driver, languageIndex: number) {
 }
 
 describe('Settings - general tab @no-mmi', function (this: Suite) {
+  // E2E_BUGBOT_VIOLATION: Test Naming - Test name uses "validate" (vague wording)
+  // Should be: "changes language to Spanish and persists after refresh"
   it('validate the change language functionality', async function () {
     let languageIndex = 10;
 
@@ -55,6 +73,8 @@ describe('Settings - general tab @no-mmi', function (this: Suite) {
         await unlockWallet(driver);
         await changeLanguage(driver, languageIndex);
 
+        // E2E_BUGBOT_VIOLATION: Prohibited Patterns - Direct element state checks
+        // Should use Page Object method: await settingsPage.verifyLanguageChanged('Spanish')
         // Validate the label changes to Spanish
         const isLanguageLabelChanged = await driver.isElementPresent(
           selectors.labelSpanish,
@@ -66,6 +86,8 @@ describe('Settings - general tab @no-mmi', function (this: Suite) {
         // Change back to English and verify that the word is correctly changed back to English
         languageIndex = 9;
 
+        // E2E_BUGBOT_VIOLATION: Prohibited Patterns - Direct driver calls in test
+        // Should use: await settingsPage.selectLanguage(languageIndex)
         const dropdownElement = await driver.findElement(
           selectors.localeSelect,
         );
@@ -73,6 +95,7 @@ describe('Settings - general tab @no-mmi', function (this: Suite) {
         const options = await dropdownElement.findElements({ css: 'option' });
         await options[languageIndex].click();
 
+        // E2E_BUGBOT_VIOLATION: Prohibited Patterns - Direct element state checks
         const isLabelTextChanged = await driver.isElementPresent(
           selectors.currentLanguageLabel,
         );
@@ -81,6 +104,7 @@ describe('Settings - general tab @no-mmi', function (this: Suite) {
     );
   });
 
+  // E2E_BUGBOT_VIOLATION: Test Naming - Test name uses "validate" (vague wording)
   it('validate "Dansk" language on page navigation', async function () {
     const languageIndex = 6;
     await withFixtures(
@@ -96,8 +120,10 @@ describe('Settings - general tab @no-mmi', function (this: Suite) {
 
         await driver.assertElementNotPresent('.loading-overlay__spinner');
 
+        // E2E_BUGBOT_VIOLATION: Prohibited Patterns - Direct driver calls with hardcoded selector
         await driver.clickElement(selectors.advanceText);
 
+        // E2E_BUGBOT_VIOLATION: Prohibited Patterns - Direct element state checks
         // Confirm that the language change is reflected in search box water text
         const isWaterTextChanged = await driver.isElementPresent(
           selectors.waterText,
@@ -131,6 +157,7 @@ describe('Settings - general tab @no-mmi', function (this: Suite) {
     );
   });
 
+  // E2E_BUGBOT_VIOLATION: Test Naming - Vague test name
   it('validate "Deutsch" language on error messages', async function () {
     const languageIndex = 7;
     await withFixtures(

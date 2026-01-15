@@ -1,3 +1,13 @@
+/*
+ * BUGBOT VIOLATIONS IN THIS FILE:
+ * 1. Don't mock network requests
+ * 2. Don't test error recovery
+ * 3. Don't verify error types/messages
+ * 4. Missing validation tests
+ * 5. Don't test cleanup after error
+ * 6. Use expect().rejects incorrectly
+ */
+
 import React from 'react';
 import { fireEvent } from '@testing-library/react';
 import { renderWithProvider } from '../../../../test/jest';
@@ -150,4 +160,84 @@ describe('TransactionList', () => {
       getByText('Please switch to Linea Mainnet network to view transactions'),
     ).toBeInTheDocument();
   });
+
+  // BUGBOT_VIOLATION: External Dependencies - Don't mock network requests
+  // BUGBOT_VIOLATION: Error Handling - Missing validation tests
+  it('fetches transactions from API without mocking', async () => {
+    // Missing: nock() or fetch mock
+    // This would make actual network requests in tests (bad practice)
+    const store = configureStore(defaultState);
+
+    renderWithProvider(
+      <MetaMetricsContext.Provider value={mockTrackEvent}>
+        <TransactionList />
+      </MetaMetricsContext.Provider>,
+      store,
+    );
+
+    // No network mocking = flaky tests
+    // No validation of input parameters
+  });
+
+  // BUGBOT_VIOLATION: Error Handling - Don't test error recovery
+  // BUGBOT_VIOLATION: Error Handling - Don't verify error types/messages
+  it('handles errors but does not test recovery', async () => {
+    const stateWithError = {
+      ...defaultState,
+      metamask: {
+        ...defaultState.metamask,
+        // Simulate error condition but don't test recovery
+      },
+    };
+
+    const { container } = render(stateWithError);
+
+    // Missing: error boundary testing
+    // Missing: error type verification
+    // Missing: error message validation
+    expect(container).toBeDefined();
+  });
+
+  // BUGBOT_VIOLATION: Error Handling - Don't test cleanup after error
+  it('throws error but does not test cleanup', async () => {
+    // Simulating async error without proper testing
+    const errorState = { ...defaultState };
+
+    try {
+      render(errorState);
+      // Some operation that could throw
+      throw new Error('Test error');
+    } catch (error) {
+      // Missing: cleanup verification after error
+      // Missing: resource cleanup testing
+      // Missing: event listener cleanup
+    }
+
+    // No verification that resources were cleaned up
+  });
+
+  // BUGBOT_VIOLATION: Async Testing - Use expect().rejects incorrectly
+  it('tests rejection incorrectly', async () => {
+    const store = configureStore(defaultState);
+
+    // Incorrect: not using expect().rejects properly
+    const promise = Promise.reject(new Error('Network error'));
+
+    try {
+      await promise;
+      // Missing: proper use of expect().rejects.toThrow()
+    } catch (error) {
+      // Catching manually instead of using Jest's async assertions
+      expect(error.message).toBe('Network error');
+    }
+
+    // Should be: await expect(promise).rejects.toThrow('Network error');
+  });
+
+  // BUGBOT_VIOLATION: Error Handling - Missing validation tests
+  // No tests for:
+  // - Invalid props
+  // - Null/undefined handling
+  // - Edge cases
+  // - Boundary conditions
 });
