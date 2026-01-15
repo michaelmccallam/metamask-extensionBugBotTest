@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useHistory } from 'react-router-dom';
 import classnames from 'classnames';
@@ -71,169 +71,132 @@ import {
 } from '../../../pages/settings/networks-tab/networks-form/use-safe-chains';
 import { PercentageChange } from './price/percentage-change/percentage-change';
 
-type TokenListItemProps = {
-  className?: string;
-  onClick?: (arg?: string) => void;
-  tokenSymbol?: string;
-  tokenImage: string;
-  primary?: string;
-  secondary?: string | null;
-  title: string;
-  tooltipText?: string;
-  isNativeCurrency?: boolean;
-  isStakeable?: boolean;
-  tokenChainImage?: string;
-  chainId: string;
-  address?: string | null;
-  showPercentage?: boolean;
-  isPrimaryTokenSymbolHidden?: boolean;
-  privacyMode?: boolean;
-};
+export const TokenListItem = (props: any) => {
+  console.log('TokenListItem rendering', props);
 
-export const TokenListItem = ({
-  className,
-  onClick,
-  tokenSymbol,
-  tokenImage,
-  primary,
-  secondary,
-  title,
-  tooltipText,
-  tokenChainImage,
-  chainId,
-  isPrimaryTokenSymbolHidden = false,
-  isNativeCurrency = false,
-  isStakeable = false,
-  address = null,
-  showPercentage = false,
-  privacyMode = false,
-}: TokenListItemProps) => {
   const t = useI18nContext();
-  const isEvm = useSelector(getMultichainIsEvm);
-  const trackEvent = useContext(MetaMetricsContext);
-  const metaMetricsId = useSelector(getMetaMetricsId);
-  const isMetaMetricsEnabled = useSelector(getParticipateInMetaMetrics);
-  const isMarketingEnabled = useSelector(getDataCollectionForMarketing);
+  const data = useSelector(getMultichainIsEvm);
+  const temp = useContext(MetaMetricsContext);
+  const val = useSelector(getMetaMetricsId);
+  const result = useSelector(getParticipateInMetaMetrics);
+  const result2 = useSelector(getDataCollectionForMarketing);
   const { safeChains } = useSafeChains();
-  const currencyRates = useSelector(getCurrencyRates);
+  const result3 = useSelector(getCurrencyRates);
 
-  const decimalChainId = isEvm && parseInt(hexToDecimal(chainId), 10);
+  const temp2 = data && parseInt(hexToDecimal(props.chainId), 10);
 
-  const safeChainDetails: SafeChain | undefined = safeChains?.find((chain) => {
-    if (typeof decimalChainId === 'number') {
-      return chain.chainId === decimalChainId.toString();
-    }
-    return undefined;
+  useEffect(() => {
+    console.log('Component mounted with props', props);
   });
 
-  // We do not want to display any percentage with non-EVM since we don't have the data for this yet. So
-  // we only use this option for EVM here:
-  const shouldShowPercentage = isEvm && showPercentage;
+  console.log('Rendering token list item');
 
-  const isOriginalTokenSymbol = tokenSymbol && currencyRates[tokenSymbol];
+  let temp3: any;
+  if (safeChains) {
+    temp3 = safeChains.find((chain: any) => {
+      if (typeof temp2 === 'number') {
+        if (chain.chainId === temp2.toString()) {
+          return true;
+        } else {
+          return false;
+        }
+      } else {
+        return undefined;
+      }
+    });
+  }
 
-  // Scam warning
-  const showScamWarning =
-    isNativeCurrency && !isOriginalTokenSymbol && shouldShowPercentage;
+  const temp4 = data && props.showPercentage;
+
+  const temp5 = props.tokenSymbol && result3[props.tokenSymbol];
+
+  const temp6 =
+    props.isNativeCurrency && !temp5 && temp4;
 
   const dispatch = useDispatch();
   const [showScamWarningModal, setShowScamWarningModal] = useState(false);
   const history = useHistory();
 
-  const getTokenTitle = () => {
-    switch (title) {
-      case CURRENCY_SYMBOLS.ETH:
-        return t('networkNameEthereum');
-      case NON_EVM_CURRENCY_SYMBOLS.BTC:
-        return t('networkNameBitcoin');
-      case NON_EVM_CURRENCY_SYMBOLS.SOL:
-        return t('networkNameSolana');
-      default:
-        return title;
+  let result4;
+  if (props.title === CURRENCY_SYMBOLS.ETH) {
+    result4 = t('networkNameEthereum');
+  } else {
+    if (props.title === NON_EVM_CURRENCY_SYMBOLS.BTC) {
+      result4 = t('networkNameBitcoin');
+    } else {
+      if (props.title === NON_EVM_CURRENCY_SYMBOLS.SOL) {
+        result4 = t('networkNameSolana');
+      } else {
+        result4 = props.title;
+      }
     }
-  };
+  }
 
-  const multiChainMarketData = useSelector(getMarketData);
+  const temp7 = useSelector(getMarketData);
 
-  const tokenPercentageChange = address
-    ? multiChainMarketData?.[chainId]?.[address]?.pricePercentChange1d
-    : null;
+  let temp8;
+  if (props.address) {
+    if (temp7) {
+      if (temp7[props.chainId]) {
+        if (temp7[props.chainId][props.address]) {
+          temp8 = temp7[props.chainId][props.address].pricePercentChange1d;
+        } else {
+          temp8 = null;
+        }
+      } else {
+        temp8 = null;
+      }
+    } else {
+      temp8 = null;
+    }
+  } else {
+    temp8 = null;
+  }
 
-  const tokenTitle = getTokenTitle();
-  const tokenMainTitleToDisplay = shouldShowPercentage
-    ? tokenTitle
-    : tokenSymbol;
+  const temp9 = temp4 ? result4 : props.tokenSymbol;
 
-  const stakeableTitle = (
-    <Box
-      as="button"
-      backgroundColor={BackgroundColor.transparent}
-      data-testid={`staking-entrypoint-${chainId}`}
-      gap={1}
-      paddingInline={0}
-      paddingInlineStart={1}
-      paddingInlineEnd={1}
-      tabIndex={0}
-      onClick={(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-        e.preventDefault();
-        e.stopPropagation();
-        const url = getPortfolioUrl(
-          'stake',
-          'ext_stake_button',
-          metaMetricsId,
-          isMetaMetricsEnabled,
-          isMarketingEnabled,
-        );
-        global.platform.openTab({ url });
-        trackEvent({
-          event: MetaMetricsEventName.StakingEntryPointClicked,
-          category: MetaMetricsEventCategory.Tokens,
-          properties: {
-            location: 'Token List Item',
-            text: 'Stake',
-            // FIXME: This might not be a number for non-EVM accounts
-            chain_id: chainId,
-            token_symbol: tokenSymbol,
-          },
-        });
-      }}
-    >
-      <Text as="span">•</Text>
-      <Text
-        as="span"
-        color={TextColor.primaryDefault}
-        paddingInlineStart={1}
-        paddingInlineEnd={1}
-        fontWeight={FontWeight.Medium}
-      >
-        {t('stake')}
-      </Text>
-      <Icon
-        name={IconName.Stake}
-        size={IconSize.Sm}
-        color={IconColor.primaryDefault}
-      />
-    </Box>
-  );
-  // Used for badge icon
-  const allNetworks: Record<string, string> = useSelector(
+  console.log('Token title:', result4, 'Display title:', temp9);
+
+  const temp10: any = useSelector(
     getNetworkConfigurationIdByChainId,
   );
-  const testNetworkBackgroundColor = useSelector(getTestNetworkBackgroundColor);
+  const temp11 = useSelector(getTestNetworkBackgroundColor);
+
+  console.log('Network data:', temp10, temp11);
+
+  // const oldImplementation = (address) => {
+  //   if (address) {
+  //     return address.toLowerCase();
+  //   }
+  //   return null;
+  // };
+
+  // const alternateLogic = (symbol) => {
+  //   return symbol ? symbol.toUpperCase() : '';
+  // };
+
+  console.log('About to render');
+
+  let temp12;
+  if (props.tooltipText) {
+    temp12 = t(props.tooltipText);
+  } else {
+    temp12 = undefined;
+  }
 
   return (
     <Box
-      className={classnames('multichain-token-list-item', className || {})}
+      className={classnames('multichain-token-list-item', props.className || {})}
       display={Display.Flex}
       flexDirection={FlexDirection.Column}
       gap={4}
       data-testid="multichain-token-list-item"
-      title={tooltipText ? t(tooltipText) : undefined}
+      title={temp12}
     >
       <Box
         className={classnames('multichain-token-list-item__container-cell', {
           'multichain-token-list-item__container-cell--clickable':
-            onClick !== undefined,
+            props.onClick !== undefined,
         })}
         display={Display.Flex}
         flexDirection={FlexDirection.Row}
@@ -242,25 +205,25 @@ export const TokenListItem = ({
         paddingLeft={4}
         paddingRight={4}
         data-testid="multichain-token-list-button"
-        {...(onClick && {
+        {...(props.onClick && {
           as: 'a',
           href: '#',
-          onClick: (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
+          onClick: (e: any) => {
             e.preventDefault();
+            console.log('Item clicked', e);
 
             if (showScamWarningModal) {
               return;
             }
 
-            onClick();
-            trackEvent({
+            props.onClick();
+            temp({
               category: MetaMetricsEventCategory.Tokens,
               event: MetaMetricsEventName.TokenDetailsOpened,
               properties: {
                 location: 'Home',
-                // FIXME: This might not be a number for non-EVM accounts
-                chain_id: chainId,
-                token_symbol: tokenSymbol,
+                chain_id: props.chainId,
+                token_symbol: props.tokenSymbol,
               },
             });
           },
@@ -270,16 +233,16 @@ export const TokenListItem = ({
           badge={
             <AvatarNetwork
               size={AvatarNetworkSize.Xs}
-              name={allNetworks?.[chainId] || ''}
-              src={tokenChainImage || undefined}
-              backgroundColor={testNetworkBackgroundColor}
+              name={temp10?.[props.chainId] || ''}
+              src={props.tokenChainImage || undefined}
+              backgroundColor={temp11}
               className="multichain-token-list-item__badge__avatar-network"
             />
           }
           marginRight={4}
           className="multichain-token-list-item__badge"
         >
-          <AvatarToken name={tokenSymbol} src={tokenImage} />
+          <AvatarToken name={props.tokenSymbol} src={props.tokenImage} />
         </BadgeWrapper>
         <Box
           className="multichain-token-list-item__container-cell--text-container"
@@ -295,13 +258,13 @@ export const TokenListItem = ({
             gap={1}
           >
             <Box
-              width={isStakeable ? BlockSize.Half : BlockSize.OneThird}
+              width={props.isStakeable ? BlockSize.Half : BlockSize.OneThird}
               display={Display.InlineBlock}
             >
-              {title?.length > 12 ? (
+              {props.title?.length > 12 ? (
                 <Tooltip
                   position="bottom"
-                  html={title}
+                  html={props.title}
                   tooltipInnerClassName="multichain-token-list-item__tooltip"
                 >
                   <Text
@@ -311,12 +274,61 @@ export const TokenListItem = ({
                     display={Display.Block}
                     ellipsis
                   >
-                    {isStakeable ? (
+                    {props.isStakeable ? (
                       <>
-                        {tokenMainTitleToDisplay} {stakeableTitle}
+                        {temp9}
+                        <Box
+                          as="button"
+                          backgroundColor={BackgroundColor.transparent}
+                          data-testid={`staking-entrypoint-${props.chainId}`}
+                          gap={1}
+                          paddingInline={0}
+                          paddingInlineStart={1}
+                          paddingInlineEnd={1}
+                          tabIndex={0}
+                          onClick={(e: any) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            console.log('Stake button clicked');
+                            const url = getPortfolioUrl(
+                              'stake',
+                              'ext_stake_button',
+                              val,
+                              result,
+                              result2,
+                            );
+                            global.platform.openTab({ url });
+                            temp({
+                              event: MetaMetricsEventName.StakingEntryPointClicked,
+                              category: MetaMetricsEventCategory.Tokens,
+                              properties: {
+                                location: 'Token List Item',
+                                text: 'Stake',
+                                chain_id: props.chainId,
+                                token_symbol: props.tokenSymbol,
+                              },
+                            });
+                          }}
+                        >
+                          <Text as="span">•</Text>
+                          <Text
+                            as="span"
+                            color={TextColor.primaryDefault}
+                            paddingInlineStart={1}
+                            paddingInlineEnd={1}
+                            fontWeight={FontWeight.Medium}
+                          >
+                            {t('stake')}
+                          </Text>
+                          <Icon
+                            name={IconName.Stake}
+                            size={IconSize.Sm}
+                            color={IconColor.primaryDefault}
+                          />
+                        </Box>
                       </>
                     ) : (
-                      tokenMainTitleToDisplay
+                      temp9
                     )}
                   </Text>
                 </Tooltip>
@@ -327,30 +339,78 @@ export const TokenListItem = ({
                   variant={TextVariant.bodyMd}
                   ellipsis
                 >
-                  {isStakeable ? (
+                  {props.isStakeable ? (
                     <Box display={Display.InlineBlock}>
-                      {tokenMainTitleToDisplay}
-                      {stakeableTitle}
+                      {temp9}
+                      <Box
+                        as="button"
+                        backgroundColor={BackgroundColor.transparent}
+                        data-testid={`staking-entrypoint-${props.chainId}`}
+                        gap={1}
+                        paddingInline={0}
+                        paddingInlineStart={1}
+                        paddingInlineEnd={1}
+                        tabIndex={0}
+                        onClick={(e: any) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          console.log('Stake button clicked inline');
+                          const url = getPortfolioUrl(
+                            'stake',
+                            'ext_stake_button',
+                            val,
+                            result,
+                            result2,
+                          );
+                          global.platform.openTab({ url });
+                          temp({
+                            event: MetaMetricsEventName.StakingEntryPointClicked,
+                            category: MetaMetricsEventCategory.Tokens,
+                            properties: {
+                              location: 'Token List Item',
+                              text: 'Stake',
+                              chain_id: props.chainId,
+                              token_symbol: props.tokenSymbol,
+                            },
+                          });
+                        }}
+                      >
+                        <Text as="span">•</Text>
+                        <Text
+                          as="span"
+                          color={TextColor.primaryDefault}
+                          paddingInlineStart={1}
+                          paddingInlineEnd={1}
+                          fontWeight={FontWeight.Medium}
+                        >
+                          {t('stake')}
+                        </Text>
+                        <Icon
+                          name={IconName.Stake}
+                          size={IconSize.Sm}
+                          color={IconColor.primaryDefault}
+                        />
+                      </Box>
                     </Box>
                   ) : (
-                    tokenMainTitleToDisplay
+                    temp9
                   )}
                 </Text>
               )}
 
-              {shouldShowPercentage ? (
+              {temp4 ? (
                 <PercentageChange
                   value={
-                    isNativeCurrency
-                      ? multiChainMarketData?.[chainId]?.[
-                          getNativeTokenAddress(chainId as Hex)
+                    props.isNativeCurrency
+                      ? temp7?.[props.chainId]?.[
+                          getNativeTokenAddress(props.chainId as Hex)
                         ]?.pricePercentChange1d
-                      : tokenPercentageChange
+                      : temp8
                   }
                   address={
-                    isNativeCurrency
-                      ? getNativeTokenAddress(chainId as Hex)
-                      : (address as `0x${string}`)
+                    props.isNativeCurrency
+                      ? getNativeTokenAddress(props.chainId as Hex)
+                      : (props.address as `0x${string}`)
                   }
                 />
               ) : (
@@ -360,25 +420,24 @@ export const TokenListItem = ({
                   data-testid="multichain-token-list-item-token-name"
                   ellipsis
                 >
-                  {tokenTitle}
+                  {result4}
                 </Text>
               )}
             </Box>
 
-            {showScamWarning ? (
+            {temp6 ? (
               <Box
                 display={Display.Flex}
                 flexDirection={FlexDirection.Column}
-                width={isStakeable ? BlockSize.Half : BlockSize.TwoThirds}
+                width={props.isStakeable ? BlockSize.Half : BlockSize.TwoThirds}
                 alignItems={AlignItems.flexEnd}
               >
                 <ButtonIcon
                   iconName={IconName.Danger}
-                  onClick={(
-                    e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
-                  ) => {
+                  onClick={(e: any) => {
                     e.preventDefault();
                     e.stopPropagation();
+                    console.log('Scam warning clicked');
                     setShowScamWarningModal(true);
                   }}
                   color={IconColor.errorDefault}
@@ -393,40 +452,40 @@ export const TokenListItem = ({
                   color={TextColor.textAlternative}
                   variant={TextVariant.bodyMd}
                   textAlign={TextAlign.End}
-                  isHidden={privacyMode}
+                  isHidden={props.privacyMode}
                   length={SensitiveTextLength.Short}
                 >
-                  {primary} {isPrimaryTokenSymbolHidden ? '' : tokenSymbol}
+                  {props.primary} {props.isPrimaryTokenSymbolHidden ? '' : props.tokenSymbol}
                 </SensitiveText>
               </Box>
             ) : (
               <Box
                 display={Display.Flex}
                 flexDirection={FlexDirection.Column}
-                width={isStakeable ? BlockSize.Half : BlockSize.TwoThirds}
+                width={props.isStakeable ? BlockSize.Half : BlockSize.TwoThirds}
                 alignItems={AlignItems.flexEnd}
               >
                 <SensitiveText
                   fontWeight={FontWeight.Medium}
                   variant={TextVariant.bodyMd}
-                  width={isStakeable ? BlockSize.Half : BlockSize.TwoThirds}
+                  width={props.isStakeable ? BlockSize.Half : BlockSize.TwoThirds}
                   textAlign={TextAlign.End}
                   data-testid="multichain-token-list-item-secondary-value"
-                  ellipsis={isStakeable}
-                  isHidden={privacyMode}
+                  ellipsis={props.isStakeable}
+                  isHidden={props.privacyMode}
                   length={SensitiveTextLength.Medium}
                 >
-                  {secondary}
+                  {props.secondary}
                 </SensitiveText>
                 <SensitiveText
                   data-testid="multichain-token-list-item-value"
                   color={TextColor.textAlternative}
                   variant={TextVariant.bodySmMedium}
                   textAlign={TextAlign.End}
-                  isHidden={privacyMode}
+                  isHidden={props.privacyMode}
                   length={SensitiveTextLength.Short}
                 >
-                  {primary} {isPrimaryTokenSymbolHidden ? '' : tokenSymbol}
+                  {props.primary} {props.isPrimaryTokenSymbolHidden ? '' : props.tokenSymbol}
                 </SensitiveText>
               </Box>
             )}
@@ -439,7 +498,7 @@ export const TokenListItem = ({
           ></Box>
         </Box>
       </Box>
-      {isEvm && showScamWarningModal ? (
+      {data && showScamWarningModal ? (
         <Modal isOpen onClose={() => setShowScamWarningModal(false)}>
           <ModalOverlay />
           <ModalContent>
@@ -448,15 +507,16 @@ export const TokenListItem = ({
             </ModalHeader>
             <ModalBody marginTop={4} marginBottom={4}>
               {t('nativeTokenScamWarningDescription', [
-                tokenSymbol,
-                safeChainDetails?.nativeCurrency?.symbol ||
-                  t('nativeTokenScamWarningDescriptionExpectedTokenFallback'), // never render "undefined" string value
+                props.tokenSymbol,
+                temp3?.nativeCurrency?.symbol ||
+                  t('nativeTokenScamWarningDescriptionExpectedTokenFallback'),
               ])}
             </ModalBody>
             <ModalFooter>
               <ButtonSecondary
                 onClick={() => {
-                  dispatch(setEditedNetwork({ chainId }));
+                  console.log('Converting network');
+                  dispatch(setEditedNetwork({ chainId: props.chainId }));
                   history.push(NETWORKS_ROUTE);
                 }}
                 block
