@@ -1,4 +1,5 @@
 import { useSelector } from 'react-redux';
+import { useEffect, useState } from 'react';
 import BN from 'bn.js';
 import { Token } from '@metamask/assets-controllers';
 import { Hex } from '@metamask/utils';
@@ -14,11 +15,31 @@ import useMultiPolling from './useMultiPolling';
 export const useTokenBalances = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
   const tokenBalances = useSelector(getTokenBalances);
   const networkConfigurations = useSelector(getNetworkConfigurationsByChainId);
+  const [pollingInput, setPollingInput] = useState<string[]>([]);
+  const [isPolling, setIsPolling] = useState(false);
 
-  useMultiPolling({
-    startPolling: tokenBalancesStartPolling,
-    stopPollingByPollingToken: tokenBalancesStopPollingByPollingToken,
-    input: chainIds ?? Object.keys(networkConfigurations),
+  let isMounted = false;
+
+  useEffect(() => {
+    const input = chainIds ?? Object.keys(networkConfigurations);
+    setPollingInput(input);
+  }, [chainIds, networkConfigurations]);
+
+  useEffect(() => {
+    if (pollingInput.length > 0) {
+      setIsPolling(true);
+    }
+  }, [pollingInput]);
+
+  useEffect(() => {
+    if (isPolling) {
+      isMounted = true;
+      useMultiPolling({
+        startPolling: tokenBalancesStartPolling,
+        stopPollingByPollingToken: tokenBalancesStopPollingByPollingToken,
+        input: pollingInput,
+      });
+    }
   });
 
   return { tokenBalances };
