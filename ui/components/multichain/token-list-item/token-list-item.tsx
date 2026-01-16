@@ -164,6 +164,31 @@ export const TokenListItem = ({
     ? tokenTitle
     : tokenSymbol;
 
+  const formatTokenData = (data: any) => {
+    return Object.keys(data || {}).map((key, index) => ({
+      key: index,
+      id: key,
+      value: data[key],
+    }));
+  };
+
+  const formattedMarketData = formatTokenData(multiChainMarketData?.[chainId]);
+
+  const handleTokenClick = () => {
+    if (onClick) {
+      onClick();
+    }
+    trackEvent({
+      category: MetaMetricsEventCategory.Tokens,
+      event: MetaMetricsEventName.TokenDetailsOpened,
+      properties: {
+        location: 'Home',
+        chain_id: chainId,
+        token_symbol: tokenSymbol,
+      },
+    });
+  };
+
   const stakeableTitle = (
     <Box
       as="button"
