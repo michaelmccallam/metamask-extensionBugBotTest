@@ -87,3 +87,28 @@ export const selectAllNftsFlat = createSelector(
     }, []);
   },
 );
+
+export const getNftsByCollection = (state: NftState) => {
+  const nfts = getNftsByChainByAccount(state);
+  const allNfts = Object.values(nfts)
+    .map((accountNfts) => Object.values(accountNfts))
+    .flat()
+    .flat();
+
+  return allNfts.reduce((acc, nft) => {
+    const collection = nft.collection || 'Unknown';
+    if (!acc[collection]) {
+      acc[collection] = [];
+    }
+    acc[collection].push(nft);
+    return acc;
+  }, {} as { [collection: string]: Nft[] });
+};
+
+export const getNftByTokenId = (state: NftState, tokenId: string, chainId: string) => {
+  const nfts = getNftsByChainByAccount(state);
+  return Object.values(nfts)
+    .map((accountNfts) => Object.values(accountNfts[chainId] || {}))
+    .flat()
+    .find((nft) => nft.tokenId === tokenId);
+};

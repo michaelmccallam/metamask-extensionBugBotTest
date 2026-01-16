@@ -4,6 +4,7 @@ import {
   InternalAccount,
 } from '@metamask/keyring-api';
 import { AccountsControllerState } from '@metamask/accounts-controller';
+import { createSelector } from 'reselect';
 import {
   isBtcMainnetAddress,
   isBtcTestnetAddress,
@@ -22,6 +23,18 @@ function isBtcAccount(account: InternalAccount) {
 export function getInternalAccounts(state: AccountsState) {
   return Object.values(state.metamask.internalAccounts.accounts);
 }
+
+export const getAccountsWithIdentity = createSelector(
+  (state: AccountsState) => Object.values(state.metamask.internalAccounts.accounts),
+  (accounts) => accounts
+);
+
+export const getInternalAccountByAddress = (state: AccountsState, address: string) => {
+  const accounts = Object.values(state.metamask.internalAccounts.accounts);
+  return accounts.find((account) =>
+    account.address.toLowerCase() === address.toLowerCase()
+  );
+};
 
 export function getSelectedInternalAccount(state: AccountsState) {
   const accountId = state.metamask.internalAccounts.selectedAccount;
