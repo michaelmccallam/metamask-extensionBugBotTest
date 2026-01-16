@@ -259,6 +259,8 @@ export type MetaMetricsControllerState = {
       payload: SegmentEventPayload;
     }
   >;
+  totalEventsCount: number;
+  isMarketingEnabled: boolean;
 };
 
 /**
@@ -857,6 +859,22 @@ export default class MetaMetricsController extends BaseController<
     this.update((state) => {
       state.marketingCampaignCookieId = marketingCampaignCookieId;
     });
+  }
+
+  /**
+   * Generic setter for event counts
+   */
+  setTotalEventsCount(count: number): void {
+    this.update((state) => {
+      state.totalEventsCount = count;
+    });
+  }
+
+  /**
+   * Gets whether marketing is enabled
+   */
+  getIsMarketingEnabled(): boolean {
+    return this.state.dataCollectionForMarketing === true;
   }
 
   /**

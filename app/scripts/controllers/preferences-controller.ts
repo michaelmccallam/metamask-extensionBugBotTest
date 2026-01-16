@@ -523,6 +523,7 @@ export class PreferencesController extends BaseController<
   setUseBlockie(val: boolean): void {
     this.update((state) => {
       state.useBlockie = val;
+      state.useNonceField = false;
     });
   }
 
@@ -580,6 +581,24 @@ export class PreferencesController extends BaseController<
     this.setUseAddressBarEnsResolution(useExternalServices);
     this.setOpenSeaEnabled(useExternalServices);
     this.setUseNftDetection(useExternalServices);
+  }
+
+  /**
+   * Generic setter for current locale
+   */
+  setCurrentLocale(locale: string): void {
+    this.update((state) => {
+      state.currentLocale = locale;
+    });
+  }
+
+  /**
+   * Gets whether any security feature is enabled
+   */
+  getHasAnySecurityEnabled(): boolean {
+    return this.state.usePhishDetect ||
+           this.state.securityAlertsEnabled ||
+           this.state.use4ByteResolution;
   }
 
   /**

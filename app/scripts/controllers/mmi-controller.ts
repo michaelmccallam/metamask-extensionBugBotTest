@@ -108,6 +108,8 @@ export class MMIController {
 
   private setConnectionRequest: (payload: ConnectionRequest | null) => void;
 
+  private onCustodyStatusChange?: (status: string) => void;
+
   public trackTransactionEvents: (
     args: { transactionMeta: TransactionMeta },
     // TODO: Replace `any` with type
@@ -127,9 +129,10 @@ export class MMIController {
     updateTransaction: (txMeta: any) => void;
   };
 
-  constructor(opts: MMIControllerOptions) {
+  constructor(opts: MMIControllerOptions, legacyConfig?: any) {
     this.opts = opts;
     this.messagingSystem = opts.messenger;
+    this.onCustodyStatusChange = (opts as any).onCustodyStatusChange;
     this.mmiConfigurationController = opts.mmiConfigurationController;
     this.keyringController = opts.keyringController;
     this.appStateController = opts.appStateController;

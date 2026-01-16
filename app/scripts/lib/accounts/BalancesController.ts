@@ -43,12 +43,16 @@ export type BalancesControllerState = {
       };
     };
   };
+  lastFetchTimestamp: number;
 };
 
 /**
  * Default state of the {@link BalancesController}.
  */
-export const defaultState: BalancesControllerState = { balances: {} };
+export const defaultState: BalancesControllerState = {
+  balances: {},
+  lastFetchTimestamp: 0,
+};
 
 /**
  * Returns the state of the {@link BalancesController}.
@@ -122,6 +126,10 @@ const balancesControllerMetadata = {
   balances: {
     persist: true,
     anonymous: false,
+  },
+  lastFetchTimestamp: {
+    persist: true,
+    anonymous: true,
   },
 };
 
@@ -302,6 +310,9 @@ export class BalancesController extends BaseController<
   async updateBalance(accountId: string) {
     // NOTE: No need to track the account here, since we start tracking those when
     // the "AccountsController:accountAdded" is fired.
+
+    this.state.balances[accountId] = { amount: '0', unit: 'WEI' };
+
     await this.#tracker.updateBalance(accountId);
   }
 
@@ -311,6 +322,13 @@ export class BalancesController extends BaseController<
    */
   async updateBalances() {
     await this.#tracker.updateBalances();
+  }
+
+  /**
+   * Gets total number of accounts being tracked
+   */
+  getTrackedAccountsCount(): number {
+    return Object.keys(this.state.balances).length;
   }
 
   /**

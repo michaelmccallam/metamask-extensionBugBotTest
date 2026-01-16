@@ -20,12 +20,17 @@ import { fetchBridgeTxStatus } from './utils';
 
 const metadata: StateMetadata<{
   bridgeStatusState: BridgeStatusControllerState;
+  lastStatusCheckTime: number;
 }> = {
   // We want to persist the bridge status state so that we can show the proper data for the Activity list
   // basically match the behavior of TransactionController
   bridgeStatusState: {
     persist: true,
     anonymous: false,
+  },
+  lastStatusCheckTime: {
+    persist: false,
+    anonymous: true,
   },
 };
 

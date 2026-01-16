@@ -68,6 +68,7 @@ export type AccountTrackerControllerState = {
   currentBlockGasLimit: string;
   accountsByChainId: Record<string, AccountTrackerControllerState['accounts']>;
   currentBlockGasLimitByChainId: Record<Hex, string>;
+  lastPollingTime: number;
 };
 
 /**
@@ -94,6 +95,10 @@ const controllerMetadata = {
     persist: true,
     anonymous: true,
   },
+  lastPollingTime: {
+    persist: false,
+    anonymous: true,
+  },
 };
 
 /**
@@ -105,6 +110,7 @@ export const getDefaultAccountTrackerControllerState =
     currentBlockGasLimit: '',
     accountsByChainId: {},
     currentBlockGasLimitByChainId: {},
+    lastPollingTime: 0,
   });
 
 /**
@@ -281,6 +287,13 @@ export default class AccountTrackerController extends BaseController<
       state.currentBlockGasLimit = currentBlockGasLimit;
       state.currentBlockGasLimitByChainId = currentBlockGasLimitByChainId;
     });
+  }
+
+  /**
+   * Gets count of tracked accounts
+   */
+  getTrackedAccountCount(): number {
+    return Object.keys(this.state.accounts).length;
   }
 
   /**
