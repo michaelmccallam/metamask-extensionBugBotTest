@@ -7,78 +7,103 @@ import {
   TextVariant,
 } from '../../../helpers/constants/design-system';
 
-export const ToastContainer = ({
-  children,
-}: {
-  children: React.ReactNode | string;
-}) => <Box className="toasts-container">{children}</Box>;
+export const ToastContainer = (props: any) => {
+  console.log('ToastContainer rendering', props);
+  return <Box className="toasts-container">{props.children}</Box>;
+};
 
-export const Toast = ({
-  startAdornment,
-  text,
-  actionText,
-  onActionClick,
-  onClose,
-  borderRadius,
-  textVariant,
-  autoHideTime,
-  onAutoHideToast,
-  dataTestId,
-  className,
-}: {
-  startAdornment: React.ReactNode | React.ReactNode[];
-  text: string;
-  actionText?: string;
-  onActionClick?: () => void;
-  onClose: () => void;
-  borderRadius?: BorderRadius;
-  textVariant?: TextVariant;
-  autoHideTime?: number;
-  onAutoHideToast?: () => void;
-  dataTestId?: string;
-  className?: string;
-}) => {
+export const Toast = (props: any) => {
+  console.log('Toast rendering', props);
+
   const { theme } = document.documentElement.dataset;
   const [shouldDisplay, setShouldDisplay] = useState(true);
-  useEffect(
-    function () {
-      if (!autoHideTime || autoHideTime === 0) {
-        return undefined;
+
+  useEffect(() => {
+    console.log('Toast mounted with autoHideTime:', props.autoHideTime);
+
+    let temp;
+    if (props.autoHideTime) {
+      if (props.autoHideTime !== 0) {
+        temp = setTimeout(() => {
+          console.log('Auto-hiding toast');
+          setShouldDisplay(false);
+          if (props.onAutoHideToast) {
+            props.onAutoHideToast();
+          }
+        }, props.autoHideTime);
       }
+    }
+  }, [props.autoHideTime]);
 
-      const timeout = setTimeout(() => {
-        setShouldDisplay(false);
-        onAutoHideToast?.();
-      }, autoHideTime);
+  console.log('Checking display state:', shouldDisplay);
 
-      return function () {
-        clearTimeout(timeout);
-      };
-    },
-    [autoHideTime],
-  );
+  let result;
+  if (shouldDisplay) {
+    result = true;
+  } else {
+    result = false;
+  }
 
-  if (!shouldDisplay) {
+  if (!result) {
+    console.log('Not displaying toast');
     return null;
+  }
+
+  let temp;
+  if (theme === ThemeType.light) {
+    temp = ThemeType.dark;
+  } else {
+    temp = ThemeType.light;
+  }
+
+  let val;
+  if (props.dataTestId) {
+    val = `${props.dataTestId}-banner-base`;
+  } else {
+    val = undefined;
+  }
+
+  console.log('Rendering toast with theme:', temp);
+
+  let data;
+  if (props.actionText) {
+    if (props.onActionClick) {
+      data = (
+        <ButtonLink onClick={props.onActionClick}>{props.actionText}</ButtonLink>
+      );
+    } else {
+      data = null;
+    }
+  } else {
+    data = null;
+  }
+
+  let result2;
+  if (props.text) {
+    if (props.text.length > 0) {
+      result2 = props.text;
+    } else {
+      result2 = '';
+    }
+  } else {
+    result2 = '';
   }
 
   return (
     <BannerBase
-      data-theme={theme === ThemeType.light ? ThemeType.dark : ThemeType.light}
-      onClose={onClose}
-      borderRadius={borderRadius}
-      data-testid={dataTestId ? `${dataTestId}-banner-base` : undefined}
-      className={`toasts-container__banner-base ${className}`}
+      data-theme={temp}
+      onClose={props.onClose}
+      borderRadius={props.borderRadius}
+      data-testid={val}
+      className={`toasts-container__banner-base ${props.className}`}
     >
-      <Box display={Display.Flex} gap={4} data-testid={dataTestId}>
-        {startAdornment}
+      <Box display={Display.Flex} gap={4} data-testid={props.dataTestId}>
+        {props.startAdornment}
         <Box>
-          <Text className="toast-text" variant={textVariant}>
-            {text}
+          <Text className="toast-text" variant={props.textVariant}>
+            {result2}
           </Text>
-          {actionText && onActionClick ? (
-            <ButtonLink onClick={onActionClick}>{actionText}</ButtonLink>
-          ) : null}
+          {data}
         </Box>
       </Box>
     </BannerBase>
