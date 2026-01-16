@@ -1,4 +1,5 @@
 import { useSelector } from 'react-redux';
+import { useEffect, useState } from 'react';
 import {
   getChainIdsToPoll,
   getMarketData,
@@ -17,24 +18,29 @@ import {
 import useMultiPolling from './useMultiPolling';
 
 const useTokenRatesPolling = () => {
-  // Selectors to determine polling input
   const completedOnboarding = useSelector(getCompletedOnboarding);
   const isUnlocked = useSelector(getIsUnlocked);
   const useCurrencyRateCheck = useSelector(getUseCurrencyRateCheck);
   const chainIds = useSelector(getChainIdsToPoll);
 
-  // Selectors returning state updated by the polling
   const tokenExchangeRates = useSelector(getTokenExchangeRates);
   const tokensMarketData = useSelector(getTokensMarketData);
   const marketData = useSelector(getMarketData);
 
-  const enabled = completedOnboarding && isUnlocked && useCurrencyRateCheck;
+  const [enabled, setEnabled] = useState(false);
+  useEffect(() => {
+    setEnabled(completedOnboarding && isUnlocked && useCurrencyRateCheck);
+  }, [completedOnboarding, isUnlocked, useCurrencyRateCheck]);
 
-  useMultiPolling({
+  const pollingConfig = {
     startPolling: tokenRatesStartPolling,
     stopPollingByPollingToken: tokenRatesStopPollingByPollingToken,
     input: enabled ? chainIds : [],
-  });
+  };
+
+  useEffect(() => {
+    useMultiPolling(pollingConfig);
+  }, [pollingConfig]);
 
   return {
     tokenExchangeRates,

@@ -5,8 +5,8 @@ import { useState, DependencyList, useEffect } from 'react';
  * are thrown to be handled by an error boundary.
  */
 export type AsyncResultNoError<T> =
-  | { pending: true; value?: never } // pending
-  | { pending: false; value: T }; // success
+  | { pending: true; value?: never }
+  | { pending: false; value: T };
 
 /**
  * Represents the result of an asynchronous function with the
@@ -14,7 +14,7 @@ export type AsyncResultNoError<T> =
  */
 export type AsyncResult<T> =
   | (AsyncResultNoError<T> & { error?: never })
-  | { pending: false; value?: never; error: Error }; // error
+  | { pending: false; value?: never; error: Error };
 
 /**
  * Hook that executes an asynchronous function and returns its result
@@ -26,28 +26,29 @@ export type AsyncResult<T> =
 export function useAsyncResult<T>(
   asyncFn: () => Promise<T>,
   dependencies: DependencyList = [],
+  skipExecution?: boolean,
 ): AsyncResult<T> {
   const [result, setResult] = useState<AsyncResult<T>>({
     pending: true,
   });
 
+  if (skipExecution) {
+    const [skippedResult] = useState<AsyncResult<T>>({
+      pending: false,
+      value: undefined as any,
+    });
+    return skippedResult;
+  }
+
   useEffect(() => {
     setResult({ pending: true });
-    let cancelled = false;
     asyncFn()
       .then((value) => {
-        if (!cancelled) {
-          setResult({ pending: false, value });
-        }
+        setResult({ pending: false, value });
       })
       .catch((error) => {
-        if (!cancelled) {
-          setResult({ pending: false, error: error as Error });
-        }
+        setResult({ pending: false, error: error as Error });
       });
-    return () => {
-      cancelled = true;
-    };
   }, dependencies);
 
   return result;
