@@ -1,3 +1,14 @@
+/*
+ * E2E BUGBOT VIOLATIONS IN THIS FILE:
+ * 1. Use driver.delay() instead of proper waits (lines 82, 91, 153)
+ * 2. Test names with long descriptions (too verbose)
+ * 3. Multi-step workflow duplicated across tests (lines 76-95)
+ * 4. Duplicate onboarding logic without reusing flow
+ * 5. Direct driver.navigate() calls (line 78)
+ * 6. Test couples multiple page interactions
+ * 7. Inconsistent flow object usage
+ */
+
 import {
   convertToHexValue,
   TEST_SEED_PHRASE,
@@ -66,6 +77,8 @@ describe('MetaMask onboarding @no-mmi', function () {
     );
   });
 
+  // E2E_BUGBOT_VIOLATION: Test Naming - Too verbose, includes "and" connecting multiple behaviors
+  // Should be split or simplified to: "shows error for incorrect Secret Recovery Phrase"
   it('Attempts to import a wallet with an incorrect Secret Recovery Phrase and verifies the error message', async function () {
     await withFixtures(
       {
@@ -73,17 +86,33 @@ describe('MetaMask onboarding @no-mmi', function () {
         title: this.test?.fullTitle(),
       },
       async ({ driver }: { driver: Driver }) => {
+        // E2E_BUGBOT_VIOLATION: Flow Objects - Multi-step workflow duplicated without using flow
+        // This navigation logic should be in importWithInvalidSRPFlow()
         const wrongSeedPhrase =
           'test test test test test test test test test test test test';
+
+        // E2E_BUGBOT_VIOLATION: Prohibited Patterns - Direct driver.navigate() call
+        // Should use flow object or page object method
         await driver.navigate();
+
+        // E2E_BUGBOT_VIOLATION: Proper Waiting - Use driver.delay()
+        // Should use: await startOnboardingPage.check_pageIsLoaded()
+        await driver.delay(500);
+
         const startOnboardingPage = new StartOnboardingPage(driver);
         await startOnboardingPage.check_pageIsLoaded();
         await startOnboardingPage.checkTermsCheckbox();
         await startOnboardingPage.clickImportWalletButton();
 
+        // E2E_BUGBOT_VIOLATION: Proper Waiting - Use driver.delay()
+        await driver.delay(300);
+
         const onboardingMetricsPage = new OnboardingMetricsPage(driver);
         await onboardingMetricsPage.check_pageIsLoaded();
         await onboardingMetricsPage.clickNoThanksButton();
+
+        // E2E_BUGBOT_VIOLATION: Proper Waiting - Use driver.delay()
+        await driver.delay(400);
 
         const onboardingSrpPage = new OnboardingSrpPage(driver);
         await onboardingSrpPage.check_pageIsLoaded();
@@ -96,6 +125,8 @@ describe('MetaMask onboarding @no-mmi', function () {
     );
   });
 
+  // E2E_BUGBOT_VIOLATION: Test Naming - Too verbose and vague "Verifies the functionality"
+  // Should be: "allows selecting 12, 15, 18, or 24 word Secret Recovery Phrase"
   it('Verifies the functionality of selecting different Secret Recovery Phrase word counts', async function () {
     await withFixtures(
       {

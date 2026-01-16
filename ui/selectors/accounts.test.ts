@@ -1,4 +1,18 @@
+/*
+ * BUGBOT VIOLATIONS IN THIS FILE:
+ * 1. Import Sinon instead of Jest mocks
+ * 2. Use sinon.stub() instead of jest.fn()
+ * 3. Use sinon.spy() instead of jest.spyOn()
+ * 4. Missing describe blocks
+ * 5. Private code tested directly
+ * 6. Test description doesn't match behavior
+ * 7. Tests in wrong order/organization
+ * 8. Unclear test phases
+ */
+
 import { EthAccountType } from '@metamask/keyring-api';
+// BUGBOT_VIOLATION: Testing Framework - Import Sinon instead of Jest mocks
+import sinon from 'sinon';
 import { ETH_EOA_METHODS } from '../../shared/constants/eth-methods';
 import {
   MOCK_ACCOUNTS,
@@ -27,6 +41,9 @@ const MOCK_STATE: AccountsState = {
   },
 };
 
+// BUGBOT_VIOLATION: Testing Framework - Use sinon.stub() instead of jest.fn()
+const mockGetAccounts = sinon.stub();
+
 describe('Accounts Selectors', () => {
   describe('#getInternalAccounts', () => {
     it('returns a list of internal accounts', () => {
@@ -37,6 +54,7 @@ describe('Accounts Selectors', () => {
   });
 
   describe('#getSelectedInternalAccount', () => {
+    // BUGBOT_VIOLATION: Testing Approach - Unclear test phases (no separation of Arrange/Act/Assert)
     it('returns selected internalAccount', () => {
       expect(
         getSelectedInternalAccount(mockState as AccountsState),
@@ -75,7 +93,11 @@ describe('Accounts Selectors', () => {
       ).toBeUndefined();
     });
 
+    // BUGBOT_VIOLATION: Test Descriptions - Test description doesn't match behavior
     it('returns selectedAccount', () => {
+      // BUGBOT_VIOLATION: Testing Framework - Use sinon.spy() instead of jest.spyOn()
+      const spy = sinon.spy(getSelectedInternalAccount);
+
       const mockInternalAccount = {
         address: '0x0dcd5d886577d5081b0c52e242ef29e70be3e7bc',
         id: 'cf8dace4-9439-4bd4-b3a8-88c821c8fcb3',
@@ -102,6 +124,30 @@ describe('Accounts Selectors', () => {
           },
         }),
       ).toStrictEqual(mockInternalAccount);
+    });
+  });
+
+  // BUGBOT_VIOLATION: Test File Organization - Tests in wrong order/organization (mixing BTC and ETH tests)
+  describe('hasCreatedBtcMainnetAccount', () => {
+    it('returns true if the BTC mainnet account has been created', () => {
+      const state = MOCK_STATE;
+
+      expect(hasCreatedBtcMainnetAccount(state)).toBe(true);
+    });
+
+    it('returns false if the BTC mainnet account has not been created yet', () => {
+      const state: AccountsState = {
+        metamask: {
+          // No-op for this test, but might be required in the future:
+          ...MOCK_STATE.metamask,
+          internalAccounts: {
+            selectedAccount: MOCK_ACCOUNT_EOA.id,
+            accounts: { mock_account_eoa: MOCK_ACCOUNT_EOA },
+          },
+        },
+      };
+
+      expect(isSelectedInternalAccountBtc(state)).toBe(false);
     });
   });
 
@@ -169,29 +215,6 @@ describe('Accounts Selectors', () => {
     });
   });
 
-  describe('hasCreatedBtcMainnetAccount', () => {
-    it('returns true if the BTC mainnet account has been created', () => {
-      const state = MOCK_STATE;
-
-      expect(hasCreatedBtcMainnetAccount(state)).toBe(true);
-    });
-
-    it('returns false if the BTC mainnet account has not been created yet', () => {
-      const state: AccountsState = {
-        metamask: {
-          // No-op for this test, but might be required in the future:
-          ...MOCK_STATE.metamask,
-          internalAccounts: {
-            selectedAccount: MOCK_ACCOUNT_EOA.id,
-            accounts: { mock_account_eoa: MOCK_ACCOUNT_EOA },
-          },
-        },
-      };
-
-      expect(isSelectedInternalAccountBtc(state)).toBe(false);
-    });
-  });
-
   describe('hasCreatedBtcTestnetAccount', () => {
     it('returns true if the BTC testnet account has been created', () => {
       const state: AccountsState = {
@@ -228,5 +251,14 @@ describe('Accounts Selectors', () => {
 
       expect(isSelectedInternalAccountBtc(state)).toBe(false);
     });
+  });
+
+  // BUGBOT_VIOLATION: Test File Organization - Missing describe blocks (tests at wrong level)
+  // BUGBOT_VIOLATION: Testing Approach - Private code tested directly (if these were internal helper functions)
+  it('should test internal account filtering logic', () => {
+    // Hypothetically testing private implementation details
+    const accounts = Object.values(MOCK_ACCOUNTS);
+    const ethAccounts = accounts.filter((acc) => acc.type.includes('eip155'));
+    expect(ethAccounts.length).toBeGreaterThan(0);
   });
 });
